@@ -1,0 +1,51 @@
+<h1>Productos en Tiempo Real</h1>
+<ul id="product-list">
+    {{#each products}}
+        <li id="product-{{this.id}}">{{this.title}} - {{this.description}} - ${{this.price}} <button onclick="deleteProduct('{{this.id}}')">Eliminar</button></li>
+    {{/each}}
+</ul>
+
+<form id="product-form">
+    <input type="text" name="title" placeholder="Título" required>
+    <input type="text" name="description" placeholder="Descripción" required>
+    <input type="text" name="code" placeholder="Código" required>
+    <input type="number" name="price" placeholder="Precio" required>
+    <input type="number" name="stock" placeholder="Stock" required>
+    <input type="text" name="category" placeholder="Categoría" required>
+    <button type="submit">Agregar Producto</button>
+</form>
+
+<script>
+    const socket = io();
+
+    socket.on('updateProducts', (products) => {
+        const productList = document.getElementById('product-list');
+        productList.innerHTML = '';
+        products.forEach(product => {
+            const productItem = document.createElement('li');
+            productItem.id = `product-${product.id}`;
+            productItem.innerHTML = `${product.title} - ${product.description} - $${product.price} <button onclick="deleteProduct('${product.id}')">Eliminar</button>`;
+            productList.appendChild(productItem);
+        });
+    });
+
+    const form = document.getElementById('product-form');
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData);
+        fetch('/api/products', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+    });
+
+    function deleteProduct(productId) {
+        fetch(`/api/products/${productId}`, {
+            method: 'DELETE'
+        });
+    }
+</script>
